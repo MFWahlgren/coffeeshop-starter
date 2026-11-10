@@ -2,6 +2,7 @@ package ek.osnb.demo.coffeeshop.customer;
 
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,5 +49,18 @@ class CustomerController {
             @Valid @RequestBody CustomerRequest request) {
 
         return service.update(id, request);
+    }
+
+    @GetMapping("/me")
+    CustomerResponse getMe(Authentication auth){
+        return service.findMyProfile(auth.getName());
+    }
+
+    @PutMapping("/me")
+    CustomerResponse updateMe(
+            Authentication auth,
+            @Valid @RequestBody ProfileRequest request){
+
+        return service.saveMyProfile(auth.getName(),request);
     }
 }
