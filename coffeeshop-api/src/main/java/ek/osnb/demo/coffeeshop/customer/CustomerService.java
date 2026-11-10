@@ -1,11 +1,9 @@
 package ek.osnb.demo.coffeeshop.customer;
 
-import ek.osnb.demo.coffeeshop.common.ConflictException;
 import ek.osnb.demo.coffeeshop.common.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -19,7 +17,43 @@ class CustomerService implements CustomerApi {
     }
 
     // ---------- Used by CustomerController ----------
+    @Transactional(readOnly = true)
+    CustomerResponse findMyProfile(String email) {
+        return repository.findByEmail(Customer.normalizeEmail(email))
+                .map(CustomerMapper::toResponse)
+                .orElseThrow(() -> new NotFoundException("No customer details saved yet"));
+    }
 
+    CustomerResponse saveMyProfile(String email, CustomerRequest request) {
+        Optional<Customer> existingCustomer = repository.findByEmail(Customer.normalizeEmail(email));
+
+        if (existingCustomer.isPresent()) {
+            Customer currentCustomer = existingCustomer.get();
+
+            currentCustomer.updateDetails(
+                    request.name(),
+                    email,
+                    request.street(),
+                    request.postalCode(),
+                    request.city()
+            );
+
+            return CustomerMapper.toResponse(currentCustomer);
+        }
+
+        Customer created = Customer.create(
+                request.name(),
+                email,
+                request.street(),
+                request.postalCode(),
+                request.city()
+        );
+
+        return CustomerMapper.toResponse(repository.save(created));
+    }
+
+    // not used anymore, replaced by findMyProfile() and saveMyProfile()
+    /*
     CustomerResponse create(CustomerRequest request) {
         requireEmailIsFree(request.email());
 
@@ -67,7 +101,7 @@ class CustomerService implements CustomerApi {
 
         return CustomerMapper.toResponse(customer);
     }
-
+    */
     // ---------- CustomerApi: used by other features ----------
 
     @Override
@@ -87,11 +121,14 @@ class CustomerService implements CustomerApi {
                 .map(CustomerMapper::toInfo);
     }
 
+    // not used anymore
+    /*
     private void requireEmailIsFree(String email) {
         if (repository.existsByEmail(Customer.normalizeEmail(email))) {
             throw new ConflictException("A customer with this email already exists");
         }
     }
+    */
 
     private Customer findCustomer(Long id) {
         Optional<Customer> result = repository.findById(id);
@@ -101,40 +138,5 @@ class CustomerService implements CustomerApi {
         }
 
         return result.get();
-    }
-
-    @Transactional(readOnly = true)
-    CustomerResponse findMyProfile(String email) {
-        return repository.findByEmail(Customer.normalizeEmail(email))
-                .map(CustomerMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("No customer details saved yet"));
-    }
-
-    CustomerResponse saveMyProfile(String email, ProfileRequest request) {
-        Optional<Customer> existingCustomer = repository.findByEmail(Customer.normalizeEmail(email));
-
-        if (existingCustomer.isPresent()) {
-            Customer currentCustomer = existingCustomer.get();
-
-            currentCustomer.updateDetails(
-                    request.name(),
-                    email,
-                    request.street(),
-                    request.postalCode(),
-                    request.city()
-            );
-
-            return CustomerMapper.toResponse(currentCustomer);
-        }
-
-        Customer created = Customer.create(
-                request.name(),
-                email,
-                request.street(),
-                request.postalCode(),
-                request.city()
-        );
-
-        return CustomerMapper.toResponse(repository.save(created));
     }
 }

@@ -1,19 +1,12 @@
 package ek.osnb.demo.coffeeshop.customer;
 
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/customers")
@@ -25,6 +18,8 @@ class CustomerController {
         this.service = service;
     }
 
+    // Commented out, and replaced by GET and PUT /api/customers/me
+    /*
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     CustomerResponse create(@Valid @RequestBody CustomerRequest request) {
@@ -49,7 +44,7 @@ class CustomerController {
             @Valid @RequestBody CustomerRequest request) {
 
         return service.update(id, request);
-    }
+    }*/
 
     @GetMapping("/me")
     CustomerResponse getMe(Authentication auth){
@@ -59,7 +54,7 @@ class CustomerController {
     @PutMapping("/me")
     CustomerResponse updateMe(
             Authentication auth,
-            @Valid @RequestBody ProfileRequest request){
+            @Valid @RequestBody CustomerRequest request){
 
         return service.saveMyProfile(auth.getName(),request);
     }
