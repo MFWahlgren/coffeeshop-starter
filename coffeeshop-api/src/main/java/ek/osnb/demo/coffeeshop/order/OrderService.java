@@ -179,6 +179,17 @@ class OrderService implements OrderApi {
         return summaries;
     }
 
+   @Transactional(readOnly = true)
+   List<OrderSummaryResponse> findAllOrders(){
+        List<OrderSummaryResponse> summaries = new ArrayList<>();
+
+       for (Order order : repository.findAllByOrderByPlacedAtDesc()) {
+           summaries.add(OrderMapper.toSummary(order));
+       }
+
+       return summaries;
+   }
+
     // Staff only (the controller decides): finds any order by id
     @Transactional(readOnly = true)
     OrderResponse findById(Long id) {
