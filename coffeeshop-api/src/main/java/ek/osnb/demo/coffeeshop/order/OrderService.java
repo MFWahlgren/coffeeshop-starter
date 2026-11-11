@@ -56,6 +56,9 @@ class OrderService implements OrderApi {
     // Everything in here happens in one transaction: if any step fails (e.g. one
     // product is out of stock), nothing is saved - no stock is taken, no order is
     // created and the cart keeps its items.
+
+    // Replaced by placeOrder(String email, PlaceOrderRequest): the customer comes from the login
+    /*
     OrderResponse placeOrder(PlaceOrderRequest request) {
         CustomerInfo customer = customers.getCustomer(request.customerId());
         CartInfo cart = carts.getCart(request.cartId());
@@ -99,7 +102,54 @@ class OrderService implements OrderApi {
 
         return OrderMapper.toResponse(order);
     }
+     */
 
+    OrderResponse placeOrder(String email, PlaceOrderRequest request) {
+        CustomerInfo customer = requireCustomerByEmail(email);
+        CartInfo cart = carts.getCart(request.cartId());
+
+        if (cart.isEmpty()) {
+            throw new ConflictException("The cart is empty");
+        }
+
+        List<Long> productIds = new ArrayList<>();
+        for (CartLineInfo line : cart.lines()) {
+            productIds.add(line.productId());
+        }
+        Map<Long, ProductInfo> products = catalog.findProducts(productIds);
+
+        List<OrderLine> lines = new ArrayList<>();
+
+        for (CartLineInfo cartLine : cart.lines()) {
+            ProductInfo product = products.get(cartLine.productId());
+
+            if (product == null) {
+                throw new NotFoundException("Product not found: " + cartLine.productId());
+            }
+
+            // Throws InsufficientStockException (409) if there are too few left
+            catalog.reserveStock(product.id(), cartLine.quantity());
+
+            // Copy the name and price: the order keeps them even if the catalog changes
+            lines.add(new OrderLine(product.id(), product.name(), product.price(), cartLine.quantity()));
+        }
+
+        ShippingAddress address = new ShippingAddress(
+                customer.name(), customer.street(), customer.postalCode(), customer.city());
+
+        Order order = repository.save(Order.place(customer.id(), address, lines, Instant.now()));
+
+        carts.clearCart(cart.id());
+
+        // Lets other features react, without the order feature knowing about them
+        events.publishEvent(new OrderPlacedEvent(
+                order.getId(), order.getCustomerId(), order.getTotal(), order.getPlacedAt()));
+
+        return OrderMapper.toResponse(order);
+    }
+
+    // Replaced by findByCustomer(String email)
+    /*
     @Transactional(readOnly = true)
     List<OrderSummaryResponse> findByCustomer(Long customerId) {
         // 404 for an unknown customer instead of an empty list
@@ -113,14 +163,60 @@ class OrderService implements OrderApi {
 
         return summaries;
     }
+    */
 
+    @Transactional(readOnly = true)
+    List<OrderSummaryResponse> findByCustomer(String email) {
+        // 404 for a customer who hasn't saved any details yet
+        CustomerInfo customer = requireCustomerByEmail(email);
+
+        List<OrderSummaryResponse> summaries = new ArrayList<>();
+
+        for (Order order : repository.findByCustomerIdOrderByPlacedAtDesc(customer.id())) {
+            summaries.add(OrderMapper.toSummary(order));
+        }
+
+        return summaries;
+    }
+
+    // Staff only (the controller decides): finds any order by id
     @Transactional(readOnly = true)
     OrderResponse findById(Long id) {
         return OrderMapper.toResponse(findOrder(id));
     }
 
+    // Customers: only their own orders
+    @Transactional(readOnly = true)
+    OrderResponse findMyOrder(String email, Long orderId) {
+        CustomerInfo customer = requireCustomerByEmail(email);
+
+        Order order = repository.findByIdAndCustomerId(orderId, customer.id())
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
+
+        return OrderMapper.toResponse(order);
+    }
+
+    // Replaced by cancel(String email, Long orderId): only the owner can cancel
+    /*
     OrderResponse cancel(Long id) {
         Order order = findOrder(id);
+        order.cancel();
+
+        // The items go back on the shelf
+        for (OrderLine line : order.getLines()) {
+            catalog.releaseStock(line.getProductId(), line.getQuantity());
+        }
+
+        return OrderMapper.toResponse(order);
+    }
+     */
+
+    OrderResponse cancel(String email, Long orderId) {
+        CustomerInfo customer = requireCustomerByEmail(email);
+
+        Order order = repository.findByIdAndCustomerId(orderId, customer.id())
+                .orElseThrow(() -> new NotFoundException("Order not found: " + orderId));
+
         order.cancel();
 
         // The items go back on the shelf
@@ -174,5 +270,10 @@ class OrderService implements OrderApi {
         }
 
         return result.get();
+    }
+
+    private CustomerInfo requireCustomerByEmail(String email) {
+        return customers.findCustomerByEmail(email)
+                .orElseThrow(() -> new NotFoundException("No customer details saved yet"));
     }
 }
