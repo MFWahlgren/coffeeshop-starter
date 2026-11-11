@@ -8,10 +8,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/staff/orders")
-public class StaffOrderController {
+class StaffOrderController {
     private final OrderService service;
 
-    public StaffOrderController(OrderService service) {
+    StaffOrderController(OrderService service) {
         this.service = service;
     }
 
