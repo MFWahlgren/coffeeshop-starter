@@ -1,5 +1,6 @@
-package ek.osnb.demo.coffeeshop.assistant;
+package ek.osnb.demo.coffeeshop.ai.assistant;
 
+import ek.osnb.demo.coffeeshop.ai.tools.TimeTools;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -11,8 +12,10 @@ import org.springframework.web.bind.annotation.RestController;
 class AssistantController {
     private final ChatClient chatClient;
 
-    AssistantController(ChatClient.Builder builder) {
-        this.chatClient = builder.build();
+    AssistantController(ChatClient.Builder builder, TimeTools timeTools) {
+        this.chatClient = builder
+                .defaultTools(timeTools)
+                .build();
     }
 
     @PostMapping("/chat")
