@@ -1,7 +1,6 @@
 package ek.osnb.demo.coffeeshop.assistant;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,10 +16,11 @@ class AssistantController {
     }
 
     @PostMapping("/chat")
-    String chat (@RequestBody AssistantRequest request){
-        return chatClient.prompt()
+    AssistantResponse chat (@RequestBody AssistantRequest request){
+        String reply = chatClient.prompt()
                 .user(request.message())
                 .call()
                 .content();
+        return new AssistantResponse(reply);
     }
 }
