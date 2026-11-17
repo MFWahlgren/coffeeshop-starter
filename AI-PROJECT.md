@@ -19,13 +19,13 @@ We want a login, and an assistant that can answer questions.
 - [x] Only staff can ship an order.
 
 ### The assistant
-- Everyone who is logged in can chat with the assistant.
+- [x] Everyone who is logged in can chat with the assistant.
 - It answers questions about our products: what we sell, prices, stock, and what to buy.
-- It tells customers about their own orders. Never about someone else's.
+- [x] It tells customers about their own orders. Never about someone else's.
 - It tells staff which products are running low.
-- It never makes up products, prices or orders.
-- It remembers the conversation.
-- It can't change anything: no new or cancelled orders.
+- [x] It never makes up products, prices or orders.
+- [x] It remembers the conversation.
+- [x] It can't change anything: no new or cancelled orders.
 
 ### Later
 - The assistant could add products to the cart, but only after the customer says yes.
