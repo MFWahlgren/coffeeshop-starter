@@ -1,20 +1,21 @@
 package ek.osnb.demo.coffeeshop.customer;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-// Used both to create (POST) and to update (PUT) a customer
+// The details saved with PUT /api/customers/me. No email: it comes from the login.
 record CustomerRequest(
-
         @NotBlank
         @Size(max = Customer.NAME_MAX_LENGTH)
         String name,
 
+        // email comes from auth now
+        /*
         @NotBlank
         @Email
         @Size(max = Customer.EMAIL_MAX_LENGTH)
         String email,
+         */
 
         @NotBlank
         @Size(max = Customer.STREET_MAX_LENGTH)
