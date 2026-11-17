@@ -8,15 +8,15 @@ We want a login, and an assistant that can answer questions.
 ## What the coffee owner wants
 
 ### Customers
-- Anyone can browse the shop and fill a cart without logging in.
-- Customers create an account with their email and a password.
-- Customers log in to check out, and to see their orders and delivery details.
-- A customer only ever sees their own details and orders.
+- [x] Anyone can browse the shop and fill a cart without logging in.
+- [x] Customers create an account with their email and a password.
+- [x] Customers log in to check out, and to see their orders and delivery details.
+- [x] A customer only ever sees their own details and orders.
 
 ### Staff
-- Staff log in with accounts we create for them. They can't sign up themselves.
-- Staff see every order, and mark orders as shipped.
-- Only staff can ship an order.
+- [x] Staff log in with accounts we create for them. They can't sign up themselves.
+- [x] Staff see every order, and mark orders as shipped.
+- [x] Only staff can ship an order.
 
 ### The assistant
 - Everyone who is logged in can chat with the assistant.
