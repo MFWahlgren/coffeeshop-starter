@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 
 /**
  * Tests the whole HTTP API, across features, with the full application and
@@ -269,7 +270,7 @@ class CheckoutFlowTest {
     }
 
     private long createCart() {
-        MvcTestResult result = mvc.post().uri("/api/carts").exchange();
+        MvcTestResult result = mvc.post().uri("/api/carts").with(csrf()).exchange();
         assertThat(result).hasStatus(HttpStatus.CREATED);
 
         return number(result, "$.id");
@@ -303,6 +304,7 @@ class CheckoutFlowTest {
 
     private MvcTestResult post(String uri, String json) {
         return mvc.post().uri(uri)
+                .with(csrf())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json)
                 .exchange();
